@@ -60,20 +60,28 @@ def print_infos(host):
     print('Broadcast IP: ' + host['bcaddr']) 
     print('==================================')
 
-#convert mac addrss in string to bytearray
-def stb_mac(mac):
+def frame_check_sequence(frame):
     raise NotImplementedError
 
 # send eth(arp) packets using RAW sockets
 # https://tools.ietf.org/html/rfc826
 def send_packet(host):
-    preamble    = (0xAA,) * 7
-    sfd         = 0xAB
-    mac_dest    = (0xFF,) * 6
-    mac_src     = [int(x, 16) for x in host['mac'].split(':')]
-    ethertype   = 0x0806
-    eth_frame = struct.pack('!22B', *preamble, sfd, *mac_dest, *mac_src, ethertype)
-    print(eth_frame)
+    preamble        = (0xAA,) * 7
+    sfd             = 0xAB
+    mac_dest        = (0xFF,) * 6
+    mac_src         = [int(x, 16) for x in host['mac'].split(':')]
+    ethertype       = 0x0806
+    payload         = (0xFF,) * 46
+    interpck_gap    = (0x0,) * 12
+    to_checksum     = struct.pack('!20BH58B', *preamble, sfd, *mac_dest, *mac_src, ethertype, *payload, *interpck_gap)
+    fcs             = binascii.crc32(to_checksum)
+
+    eth_pack        = struct.pack('!20BH46Bi12B', *preamble, sfd, *mac_dest, *mac_src, ethertype, *payload, fcs, *interpck_gap)
+    
+    s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
+    s.bind((host['interface'], 0))
+
+    s.send(eth_pack)
 
 # test
 set_host(_host)
