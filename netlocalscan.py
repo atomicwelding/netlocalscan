@@ -22,7 +22,8 @@ _host = {
 def set_host(host):
     for i in netifaces.interfaces():
         interface = netifaces.ifaddresses(i)
-        if netifaces.AF_INET in list(interface.keys()) and '127.0.0.1' != interface[netifaces.AF_INET][0]['addr']:
+        if netifaces.AF_INET in interface and netifaces.AF_LINK in interface and \
+                '127.0.0.1' != interface[netifaces.AF_INET][0]['addr']:
             host['interface']   = i
             host['mac']         = interface[netifaces.AF_LINK][0]['addr']
             host['addr']        = interface[netifaces.AF_INET][0]['addr']
@@ -74,7 +75,7 @@ def send_packet(host):
     payload         = (0xFF,) * 46
     interpck_gap    = (0x0,) * 12
     to_checksum     = struct.pack('!20BH58B', *preamble, sfd, *mac_dest, *mac_src, ethertype, *payload, *interpck_gap)
-    fcs             = binascii.crc32(to_checksum)
+    fcs             = binascii.crc32(to_checksum) & 0x7fffffff
 
     eth_pack        = struct.pack('!20BH46Bi12B', *preamble, sfd, *mac_dest, *mac_src, ethertype, *payload, fcs, *interpck_gap)
     
