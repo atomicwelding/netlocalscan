@@ -1,9 +1,13 @@
-""" scanning machines that are connected to local network
+""" scanning machines connected to the local network
     ; by weld
 """
 
+import struct
+import binascii
+
 import socket
-import netifaces 
+import netifaces
+
 
 _host = {
     'interface':'',
@@ -56,9 +60,24 @@ def print_infos(host):
     print('Broadcast IP: ' + host['bcaddr']) 
     print('==================================')
 
+#convert mac addrss in string to bytearray
+def stb_mac(mac):
+    raise NotImplementedError
+
 # send eth(arp) packets using RAW sockets
-# def send_packet(host, dest_ip):
+# https://tools.ietf.org/html/rfc826
+def send_packet(host):
+    preamble    = (0xAA,) * 7
+    sfd         = 0xAB
+    mac_dest    = (0xFF,) * 6
+    mac_src     = [int(x, 16) for x in host['mac'].split(':')]
+    ethertype   = 0x0806
+    eth_frame = struct.pack('!22B', *preamble, sfd, *mac_dest, *mac_src, ethertype)
+    print(eth_frame)
 
 # test
-set_host(_host) 
-print_infos(_host)
+set_host(_host)
+send_packet(_host)
+
+# set_host(_host) 
+# print_infos(_host)
