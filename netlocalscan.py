@@ -87,5 +87,4 @@ def send_packet(host):
 set_host(_host)
 send_packet(_host)
 
-# set_host(_host) 
-# print_infos(_host)
+print_infos(_host)
