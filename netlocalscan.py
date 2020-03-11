@@ -61,7 +61,9 @@ def print_infos(host):
     print('Broadcast IP: ' + host['bcaddr']) 
     print('==================================')
 
-def frame_check_sequence(frame):
+# return raw arp rqt
+# https://en.wikipedia.org/wiki/Address_Resolution_Protocol
+def craft_arp_payload(host):
     raise NotImplementedError
 
 # send eth(arp) packets using RAW sockets
@@ -74,18 +76,18 @@ def send_packet(host):
     ethertype       = 0x0806
     payload         = (0xFF,) * 46
     interpck_gap    = (0x0,) * 12
-    to_checksum     = struct.pack('!20BH58B', *preamble, sfd, *mac_dest, *mac_src, ethertype, *payload, *interpck_gap)
+    to_checksum     = struct.pack('!12BH46B', *mac_dest, *mac_src, ethertype, *payload)
     fcs             = binascii.crc32(to_checksum) & 0x7fffffff
 
-    eth_pack        = struct.pack('!20BH46Bi12B', *preamble, sfd, *mac_dest, *mac_src, ethertype, *payload, fcs, *interpck_gap)
+    eth_pack        = struct.pack('!12BH46Bi', *mac_dest, *mac_src, ethertype, *payload, fcs)
     
+    print(eth_pack)
     s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
     s.bind((host['interface'], 0))
 
     s.send(eth_pack)
 
-# test
+# main
 set_host(_host)
-send_packet(_host)
-
 print_infos(_host)
+send_packet(_host
