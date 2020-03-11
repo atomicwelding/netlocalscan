@@ -1,2 +1,2 @@
 # netlocalscan
- scanning machines that are connected to local network
+ scanning machines connected to the local network

@@ -64,7 +64,21 @@ def print_infos(host):
 # return raw arp rqt
 # https://en.wikipedia.org/wiki/Address_Resolution_Protocol
 def craft_arp_payload(host):
-    raise NotImplementedError
+    h_type          = (0x00, 0x01) #2
+    p_type          = (0x08, 0x00) #2
+
+    h_addr_length   = (0x06) #1
+    p_addr_length   = (0x04) #1
+
+    operation       = (0x00, 0x01) #2
+
+    mac_src         = [int(x, 16) for x in host['mac'].split(':')]
+    ip_src          = [int(x) for x in host['addr'].split('.')]
+    
+    mac_dest        = (0xFF,) * 6
+    ip_dest         = [int(x) for x in host['bcaddr'].split('.')]
+ 
+    return struct.pack('!28B', *h_type, *p_type, h_addr_length, p_addr_length, *operation, *mac_src, *ip_src, *mac_dest, *ip_dest)
 
 # send eth(arp) packets using RAW sockets
 # https://tools.ietf.org/html/rfc826
@@ -74,14 +88,25 @@ def send_packet(host):
     mac_dest        = (0xFF,) * 6
     mac_src         = [int(x, 16) for x in host['mac'].split(':')]
     ethertype       = 0x0806
-    payload         = (0xFF,) * 46
+    payload         = craft_arp_payload(host)
+    if(len(payload) < 46):
+        for x in range(46-len(payload)):
+            payload = payload + b'\x00'
+
     interpck_gap    = (0x0,) * 12
-    to_checksum     = struct.pack('!12BH46B', *mac_dest, *mac_src, ethertype, *payload)
+    to_checksum     = struct.pack('!12BH%iB' % len(payload), *mac_dest, *mac_src, ethertype, *payload)
     fcs             = binascii.crc32(to_checksum) & 0x7fffffff
 
-    eth_pack        = struct.pack('!12BH46Bi', *mac_dest, *mac_src, ethertype, *payload, fcs)
+    eth_pack        = struct.pack('!12BH%iBI' %len(payload), *mac_dest, *mac_src, ethertype, *payload, fcs)
     
+    print('eth_pack:')
     print(eth_pack)
+    
+    print('=============')
+    
+    print('payload:')
+    print(payload)
+
     s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
     s.bind((host['interface'], 0))
 
@@ -90,4 +115,4 @@ def send_packet(host):
 # main
 set_host(_host)
 print_infos(_host)
-send_packet(_host
+send_packet(_host)
