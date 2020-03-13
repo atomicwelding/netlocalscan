@@ -1,5 +1,7 @@
 """ scanning machines connected to the local network
     ; by weld
+
+    Works in IPV4.
 """
 
 import struct
@@ -10,17 +12,6 @@ import netifaces
 
 import time
 import threading
-
-
-_host = {
-    'interface':'',
-    'mac':'',
-    'addr':'',
-    'mask':'',
-    'netaddr':'',
-    'bcaddr':''
-}
-
 
 class Host:
     # constructor
@@ -141,8 +132,7 @@ class Bruteforce:
             
             # OTHER CLASSES
             else:
-                raise ValueError('''This software uses classful network implementation and your actual IP don\'t figure in 
-                actual ranges. Please contact author to get help.''')
+                raise ValueError('''This software uses classful network implementation and your actual IP don\'t figure in implemented ranges. Please contact author to grab some help.''')
         except ValueError as err:
             print(err)
     
@@ -170,7 +160,9 @@ class Bruteforce:
     def start(self):
         self.craft_arp_payloads()
         for payload in self.arp_payloads:
-            print(self.craft_eth_frame(payload))
+            s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
+            s.bind((self.host.interface, 0))
+            s.send(self.craft_eth_frame(payload))
             time.sleep(2)
         
 
