@@ -113,9 +113,38 @@ class Bruteforce:
         #       192 < int(IP.split('.')[0]) < 223      => CLASS A MASK 255.255.255.0 => 255.255.255.Z
         # 
         # retrieve first ip's parts from local network addr.
-        ip_dest         = [int(x) for x in '==> CORRECT IT PLZ <=='.split('.')]
-    
-        return struct.pack('!28B', *h_type, *p_type, h_addr_length, p_addr_length, *operation, *mac_src, *ip_src, *mac_dest, *ip_dest)
+
+        try:
+            ip = [int(x) for x in self.host.netaddr.split('.')]
+            classful_network = ip[0]
+            
+            # CLASS A
+            if classful_network in range(0, 128):
+                for x in range(0, 255):
+                    for y in range(1, 255):
+                        for z in range(0, 255):
+                            ip_dest = [ip[0], x, y, z]
+                            self.arp_payloads.append(struct.pack('!28B', *h_type, *p_type, h_addr_length, p_addr_length, *operation, *mac_src, *ip_src, *mac_dest, *ip_dest))
+
+            # CLASS B
+            elif classful_network in range(128, 192):
+                for y in range(0,255):
+                    for z in range(1, 255):
+                        ip_dest = [ip[0], ip[1], y, z]
+                        self.arp_payloads.append(struct.pack('!28B', *h_type, *p_type, h_addr_length, p_addr_length, *operation, *mac_src, *ip_src, *mac_dest, *ip_dest))
+            
+            # CLASS C
+            elif classful_network in range(192, 223):
+                for z in range(1, 255):
+                    ip_dest = [ip[0], ip[1], ip[2], z]
+                    self.arp_payloads.append(struct.pack('!28B', *h_type, *p_type, h_addr_length, p_addr_length, *operation, *mac_src, *ip_src, *mac_dest, *ip_dest))
+            
+            # OTHER CLASSES
+            else:
+                raise ValueError('''This software uses classful network implementation and your actual IP don\'t figure in 
+                actual ranges. Please contact author to get help.''')
+        except ValueError as err:
+            print(err)
     
     # return eth(arp) packets
     # https://en.wikipedia.org/wiki/Ethernet_frame
@@ -123,7 +152,7 @@ class Bruteforce:
         preamble        = (0xAA,) * 7
         sfd             = 0xAB
         mac_dest        = (0xFF,) * 6
-        mac_src         = [int(x, 16) for x in self.mac.split(':')]
+        mac_src         = [int(x, 16) for x in self.host.mac.split(':')]
         ethertype       = 0x0806
 
         # padding
@@ -139,21 +168,16 @@ class Bruteforce:
 
     # ask every IPs on the network through ARP using RAW sockets
     def start(self):
-        raise NotImplementedError
-
-        # s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
-        # s.bind((host['interface'], 0))
-        # s.send(eth_pack)
+        self.craft_arp_payloads()
+        for payload in self.arp_payloads:
+            print(self.craft_eth_frame(payload))
+            time.sleep(2)
+        
 
 class Server:
     pass
 
 if __name__ == "__main__":
-    # set_host(_host)
-    # print_infos(_host)
-    # send_packet(_host)
-
-    # server = threading.Thread(target=threading_server, daemon=True)
-    # server.start()
-
-    # server.join()
+    bruteforce = Bruteforce()
+    sender = threading.Thread(target=bruteforce.start)
+    sender.start()
