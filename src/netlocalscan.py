@@ -1,4 +1,4 @@
-""" scanning machines connected to the local network
+""" netlocalscan - scanning machines connected to the local network
     ; by weld
 
     Works in IPV4.
@@ -136,7 +136,7 @@ class Bruteforce:
             # CLASS C
             elif classful_network in range(192, 223):
                 for z in range(1, 255):
-                    ip_dest = [ip[0], ip[1], ip[2], z]
+                    ip_dest = [ip[0], ip[1], ip[2], z] 
                     self.arp_payloads.append(struct.pack('!28B', *h_type, *p_type, h_addr_length, p_addr_length, *operation, *mac_src, *ip_src, *mac_dest, *ip_dest))
             
             # OTHER CLASSES
@@ -172,7 +172,6 @@ class Bruteforce:
             s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
             s.bind((self.host.interface, 0))
             s.send(self.craft_eth_frame(payload))
-            time.sleep(2) 
 
 class Server:
     # constructor
