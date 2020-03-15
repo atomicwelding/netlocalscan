@@ -8,5 +8,9 @@ The usage requires python3 and netifaces.
 
 ## Execution flow
 
+#### Bruteforce
 ![flow chart](./rsrc/bruteforce_chart.jpg)
 
+
+#### Serveur
+![flow chart 2](./rsrc/server_chart.png)
