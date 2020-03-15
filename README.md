@@ -14,3 +14,5 @@ The usage requires python3 and netifaces.
 
 #### Serveur
 ![flow chart 2](./rsrc/server_chart.png)
+
+![schema](./rsrc/schema.png)
