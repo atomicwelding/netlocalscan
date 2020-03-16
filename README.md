@@ -29,4 +29,4 @@ You need to run the script as root, since you need those rights to access low-le
 
 
 ## ARP
-![schema](./rsrc/schema.png)
+![schema](./rsrc/schema_arp.png)
