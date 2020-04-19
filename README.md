@@ -1,6 +1,6 @@
 # netlocalscan
 
-netlocalscan is a tool that allows you to scan the machines' connected to your local network area. 
+netlocalscan is a tool that allows you to scan the machines connected to your local network area. 
 
 It works by bruteforcing IP, using classful network and sending them an ARP request. The software is multithreaded.
 
